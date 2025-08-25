@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuration constants
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "Your-Gemini-API-KEY")
 FIREBASE_SERVICE_ACCOUNT_PATH = "serviceAccount.json"
 
