@@ -1,7 +1,9 @@
-
 services:
   fastapi-app:
-    build: .
+    # Use Docker Hub image by default, but can override with build
+    image: suraj380/clearread-converter:latest
+    # Uncomment the line below to build locally instead
+    # build: .
     ports:
       - "8000:8000"
     environment:

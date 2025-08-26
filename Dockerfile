@@ -1,4 +1,3 @@
-# Alternative Dockerfile using pyproject.toml directly
 FROM python:3.13-slim
 
 # Set working directory
@@ -9,24 +8,23 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy pyproject.toml for dependency installation
-COPY pyproject.toml .
+# Install uv
+RUN pip install --no-cache-dir uv
 
-# Install dependencies using pip and pyproject.toml
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e .
+# Copy uv files for dependency installation
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv (much faster)
+RUN uv sync --frozen --no-dev
 
 # Copy application code
 COPY . .
 
-# Create non-root user for security
+# Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
@@ -35,8 +33,8 @@ USER appuser
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=2 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run application with uv
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
